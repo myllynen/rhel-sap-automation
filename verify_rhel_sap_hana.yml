@@ -1,0 +1,13 @@
+---
+- name: Verify RHEL for SAP HANA
+  hosts: all
+  become: true
+  vars:
+    sap_preconfigure_assert: true
+    sap_preconfigure_assert_ignore_errors: true
+
+    sap_hana_preconfigure_assert: true
+    sap_hana_preconfigure_assert_ignore_errors: true
+  roles:
+    - sap-preconfigure
+    - sap-hana-preconfigure
