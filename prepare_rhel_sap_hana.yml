@@ -3,17 +3,41 @@
   hosts: all
   become: true
   vars:
-    sap_preconfigure_update: true
-    sap_preconfigure_reboot_ok: true
+    firewall_enable: false
+    system_locale: en_US.UTF-8
+    system_locale_reboot: true
 
+    #
+    # SAP general preconfiguration
+    #
+    sap_general_preconfigure_update: true
+    sap_general_preconfigure_reboot_ok: true
+
+    sap_general_preconfigure_enable_repos: false
+    sap_general_preconfigure_use_netweaver_repos: false
+    sap_general_preconfigure_use_hana_repos: false
+    sap_general_preconfigure_use_ha_repos: false
+    sap_general_preconfigure_disable_all_other_repos: false
+
+    #
+    # SAP HANA preconfiguration
+    #
     sap_hana_preconfigure_update: true
     sap_hana_preconfigure_reboot_ok: true
 
     sap_hana_preconfigure_use_tuned: true
     sap_hana_preconfigure_set_minor_release: true
     sap_hana_preconfigure_min_rhel_release_check: true
-    sap_hana_preconfigure_modify_grub_cmdline_linux: false
+    sap_hana_preconfigure_modify_grub_cmdline_linux: true
     sap_hana_preconfigure_enable_sap_hana_repos: false
+    sap_hana_preconfigure_add_ibm_power_repos: false
+
+    #sap_hana_preconfigure_db_group_name: dba
   roles:
-    - sap-preconfigure
-    - sap-hana-preconfigure
+    - timesync
+    - system_locale
+    - base_packages
+    - firewall
+    - system_init
+    - sap_general_preconfigure
+    - sap_hana_preconfigure

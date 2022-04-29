@@ -3,11 +3,14 @@
   hosts: all
   become: true
   vars:
-    sap_preconfigure_assert: true
-    sap_preconfigure_assert_ignore_errors: true
+    sap_general_preconfigure_assert: true
+    sap_general_preconfigure_assert_ignore_errors: false
 
     sap_hana_preconfigure_assert: true
-    sap_hana_preconfigure_assert_ignore_errors: true
+    sap_hana_preconfigure_assert_ignore_errors: false
+    sap_hana_preconfigure_assert_all_config: true
+
+    sap_hana_preconfigure_use_tuned: true
   roles:
-    - sap-preconfigure
-    - sap-hana-preconfigure
+    - sap_general_preconfigure
+    - sap_hana_preconfigure
