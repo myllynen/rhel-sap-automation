@@ -1,9 +1,15 @@
 ---
-- name: Prepare RHEL for SAP HANA
+- name: Prepare RHEL system for SAP HANA
   hosts: all
   become: true
   vars:
+    #accounts_local_groups_create: ...
+    #accounts_local_users_create: ...
+    #accounts_local_users_groups: ...
     firewall_enable: false
+    service_state_disable:
+      - mlocate-updatedb.timer
+    #storage_pools: ...
     system_locale: en_US.UTF-8
     system_locale_reboot: true
 
@@ -19,6 +25,8 @@
     sap_general_preconfigure_use_ha_repos: false
     sap_general_preconfigure_disable_all_other_repos: false
 
+    #sap_hana_preconfigure_db_group_name: sapsys
+
     #
     # SAP HANA preconfiguration
     #
@@ -31,13 +39,15 @@
     sap_hana_preconfigure_modify_grub_cmdline_linux: true
     sap_hana_preconfigure_enable_sap_hana_repos: false
     sap_hana_preconfigure_add_ibm_power_repos: false
-
-    #sap_hana_preconfigure_db_group_name: dba
   roles:
     - timesync
     - system_locale
+    - multipath_setup
+    #- rhel-system-roles.storage
+    #- accounts_local
     - base_packages
     - firewall
     - system_init
     - sap_general_preconfigure
     - sap_hana_preconfigure
+    - service_state

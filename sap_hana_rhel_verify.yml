@@ -1,5 +1,5 @@
 ---
-- name: Verify RHEL for SAP HANA
+- name: Verify RHEL system for SAP HANA
   hosts: all
   become: true
   vars:

@@ -1,0 +1,28 @@
+---
+- name: Setup SAP HANA
+  hosts: all
+  become: true
+  vars:
+    #
+    # SAP HANA installation
+    #
+    sap_hana_install_software_directory: /tmp/imdb
+
+    sap_hana_install_new_system: true
+    sap_hana_install_install_path: /hana/shared
+    sap_hana_install_system_usage: 'production'
+
+    sap_hana_install_sid: 'ABC'
+    sap_hana_install_number: '123'
+    sap_hana_install_userid: 1234
+    sap_hana_install_groupid: 1234
+
+    sap_hana_install_common_master_password: 'Foobar_12'
+
+    sap_hana_install_apply_license: false
+
+    sap_hana_install_system_restart: 'n'
+    sap_hana_install_create_initial_tenant: 'y'
+    sap_hana_install_update_firewall: false
+  roles:
+    - sap_hana_install

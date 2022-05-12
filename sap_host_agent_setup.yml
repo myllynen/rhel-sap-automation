@@ -1,0 +1,15 @@
+---
+- name: Setup SAP Host Agent
+  hosts: all
+  become: true
+  vars:
+    sap_hostagent_installation_type: sar
+    sap_hostagent_sar_local_path: /tmp
+    sap_hostagent_sar_file_name: SAPHOSTAGENT_linux.SAR
+    sap_hostagent_sapcar_local_path: /tmp
+    sap_hostagent_sapcar_file_name: SAPCAR_linux.EXE
+    sap_hostagent_agent_tmp_directory: /tmp/hostagent
+    sap_hostagent_clean_tmp_directory: true
+    sap_hostagent_config_ssl: false
+  roles:
+    - sap_hostagent
