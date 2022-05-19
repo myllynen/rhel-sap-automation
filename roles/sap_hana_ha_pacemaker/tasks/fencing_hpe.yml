@@ -1,0 +1,15 @@
+---
+- name: Install fence agent package
+  yum:
+    name: fence-agents-ipmilan
+    state: present
+
+- name: Configure cluster fence agent
+  command: >
+    pcs stonith create ipmi-fence-{{ item.hostname }} fence_ipmilan
+    pcmk_host_list='{{ item.hostname }}'
+    ipaddr={{ item.ilo_ip }}
+    ssl=1 ssl_insecure=1
+    login='{{ hp_ilo_credentials.hp_ilo_username }}'
+    passwd='{{ hp_ilo_credentials.hp_ilo_password }}'
+  loop: "{{ hp_ilo_addresses }}"

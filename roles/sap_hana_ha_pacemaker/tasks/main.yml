@@ -1,0 +1,228 @@
+---
+- name: Install Pacemaker packages
+  yum:
+    name:
+      - pacemaker
+      - pcs
+      - resource-agents-sap-hana
+
+- name: Check SAP HANA status
+  shell:
+    cmd: su - "{{ sap_hana_ha_pacemaker_hana_install_sid | lower }}adm" -c "HDB info"
+    warn: false
+  register: hdb_info
+  changed_when: false
+
+- name: Stop SAP HANA
+  shell:
+    cmd: su - "{{ sap_hana_ha_pacemaker_hana_install_sid | lower }}adm" -c "HDB stop"
+    warn: false
+  when: "'hdbxsengine' in hdb_info.stdout"
+
+- name: Set SAP HANA installation path
+  set_fact:
+    hana_install_path: "{{ sap_hana_ha_pacemaker_hana_directory }}/{{ sap_hana_ha_pacemaker_hana_install_sid }}"
+
+- name: Create SAP HANA hooks directory
+  file:
+    path: "{{ hana_install_path }}/hooks"
+    state: directory
+    owner: "{{ sap_hana_ha_pacemaker_hana_directory_owner }}"
+    group: "{{ sap_hana_ha_pacemaker_hana_directory_group }}"
+
+- name: Copy SAP HANA SR hook
+  copy:
+    src: /usr/share/SAPHanaSR/srHook/SAPHanaSR.py
+    dest: "{{ hana_install_path }}/hooks"
+    mode: '0644'
+    owner: "{{ sap_hana_ha_pacemaker_hana_directory_owner }}"
+    group: "{{ sap_hana_ha_pacemaker_hana_directory_group }}"
+    remote_src: true
+
+- name: Configure SAP HANA SR hook on HANA instances
+  blockinfile:
+    path: "{{ hana_install_path }}/global/hdb/custom/config/global.ini"
+    block: |
+      [ha_dr_provider_SAPHanaSR]
+      provider = SAPHanaSR
+      path = {{ hana_install_path }}/hooks
+      execution_order = 1
+      
+      [trace]
+      ha_dr_saphanasr = info
+
+- name: Create SAP HANA sudoers configuration file
+  template:
+    src: 20-saphana.j2
+    dest: /etc/sudoers.d/20-saphana
+    owner: root
+    group: root
+    mode: '0440'
+    validate: /usr/sbin/visudo -cf %s
+
+- name: Start SAP HANA
+  shell:
+    cmd: su - "{{ sap_hana_ha_pacemaker_hana_install_sid | lower }}adm" -c "HDB start"
+    warn: false
+  throttle: 1
+
+- name: Verify SAP HANA status
+  shell:
+    cmd: su - "{{ sap_hana_ha_pacemaker_hana_install_sid | lower }}adm" -c "HDB info"
+    warn: false
+  register: hdb_info
+  failed_when: "'hdbxsengine' not in hdb_info.stdout"
+  changed_when: false
+
+- name: Set password for hacluster user
+  user:
+    name: hacluster
+    password: "{{ sap_hana_ha_pacemaker_hacluster_password | password_hash('sha512', 1234567890 | random(seed=inventory_hostname)) }}"
+
+- name: Enable pcsd service
+  service:
+    name: pcsd
+    enabled: true
+
+- name: Start pcsd service
+  service:
+    name: pcsd
+    state: started
+
+- name: Add cluster members to /etc/hosts
+  lineinfile:
+    path: /etc/hosts
+    line: "{{ hostvars[item].ansible_facts.default_ipv4.address }} {{ hostvars[item].ansible_facts.fqdn }} {{ hostvars[item].ansible_facts.hostname }}"
+  loop: "{{ ansible_play_batch | sort }}"
+
+- name: Authenticate cluster nodes
+  command: >
+    pcs host auth
+    {{ hostvars[groups.all[0]].ansible_facts.fqdn }} {{ hostvars[groups.all[1]].ansible_facts.fqdn }}
+    -u hacluster -p '{{ sap_hana_ha_pacemaker_hacluster_password }}'
+  register: cluster_auth
+  failed_when: "'Authorized' not in cluster_auth.stdout"
+
+- name: Create high availability cluster
+  command: >
+    pcs cluster setup {{ sap_hana_ha_pacemaker_cluster_name }}
+    {{ hostvars[groups.all[0]].ansible_facts.fqdn }} {{ hostvars[groups.all[1]].ansible_facts.fqdn }}
+#    totem token=30000
+  run_once: true
+  register: cluster_create
+  failed_when:
+    - "'Cluster has been successfully set up' not in cluster_create.stdout"
+    - "'nodes are already in a cluster' not in cluster_create.stderr"
+  changed_when: "'nodes are already in a cluster' not in cluster_create.stderr"
+
+- name: Enable cluster services
+  command: pcs cluster enable --all
+  run_once: true
+
+- name: Start cluster services
+  command: pcs cluster start --all
+  run_once: true
+
+- name: Put cluster in maintenance mode
+  command: pcs property set maintenance-mode=true
+  run_once: true
+
+- name: Configure cluster resource stickiness
+  command: pcs resource defaults update resource-stickiness=1000
+  run_once: true
+
+- name: Configure cluster migration threshold
+  command: pcs resource defaults update migration-threshold=5000
+  run_once: true
+
+- name: Create cluster topology resource
+  command: >
+    pcs resource create SAPHanaTopology_{{ sap_hana_ha_pacemaker_hana_install_sid }}_{{ sap_hana_ha_pacemaker_hana_install_number }}
+    SAPHanaTopology SID={{ sap_hana_ha_pacemaker_hana_install_sid }} InstanceNumber={{ sap_hana_ha_pacemaker_hana_install_number }}
+    op start timeout=600
+    op stop timeout=300
+    op monitor interval=10 timeout=600
+    clone clone-max=2 clone-node-max=1 interleave=true
+  run_once: true
+  register: topo_create
+  failed_when: topo_create.rc != 0 and 'already exists' not in topo_create.stderr
+  changed_when: "'already exists' not in topo_create.stderr"
+
+- name: Create cluster resource agent
+  command: >
+    pcs resource create SAPHana_{{ sap_hana_ha_pacemaker_hana_install_sid }}_{{ sap_hana_ha_pacemaker_hana_install_number }}
+    SAPHana SID={{ sap_hana_ha_pacemaker_hana_install_sid }} InstanceNumber={{ sap_hana_ha_pacemaker_hana_install_number }}
+    PREFER_SITE_TAKEOVER=true DUPLICATE_PRIMARY_TIMEOUT=7200 AUTOMATED_REGISTER=true
+    op start timeout=3600
+    op stop timeout=3600
+    op monitor interval=61 role="Slave" timeout=700
+    op monitor interval=59 role="Master" timeout=700
+    op promote timeout=3600
+    op demote timeout=3600
+    promotable notify=true clone-max=2 clone-node-max=1 interleave=true
+  run_once: true
+  register: agent_create
+  failed_when: agent_create.rc != 0 and 'already exists' not in agent_create.stderr
+  changed_when: "'already exists' not in agent_create.stderr"
+
+- name: Create cluster Virtual IP address resource
+  command: >
+    pcs resource create vip_{{ sap_hana_ha_pacemaker_hana_install_sid }}_{{ sap_hana_ha_pacemaker_hana_install_number }}
+    IPaddr2 ip="{{ sap_hana_ha_pacemaker_hana_virtual_ip }}"
+  run_once: true
+  register: vip_create
+  failed_when: vip_create.rc != 0 and 'already exists' not in vip_create.stderr
+  changed_when: "'already exists' not in vip_create.stderr"
+
+- name: Create cluster constraint
+  command: >
+    pcs constraint order SAPHanaTopology_{{ sap_hana_ha_pacemaker_hana_install_sid }}_{{ sap_hana_ha_pacemaker_hana_install_number }}-clone
+    then SAPHana_{{ sap_hana_ha_pacemaker_hana_install_sid }}_{{ sap_hana_ha_pacemaker_hana_install_number }}-clone symmetrical=false
+  run_once: true
+  register: constraint_create
+  failed_when: constraint_create.rc != 0 and 'already exists' not in constraint_create.stderr
+  changed_when: "'already exists' not in constraint_create.stderr"
+
+- name: Colocate cluster constraint
+  command:
+    pcs constraint colocation add vip_{{ sap_hana_ha_pacemaker_hana_install_sid }}_{{ sap_hana_ha_pacemaker_hana_install_number }}
+    with master SAPHana_{{ sap_hana_ha_pacemaker_hana_install_sid }}_{{ sap_hana_ha_pacemaker_hana_install_number }}-clone 2000
+  run_once: true
+  register: constraint_colocate
+  failed_when: constraint_colocate.rc != 0 and 'already exists' not in constraint_colocate.stderr
+  changed_when: "'already exists' not in constraint_colocate.stderr"
+
+- name: Configure cluster fencing (HPE)
+  include_tasks: fencing_hpe.yml
+  when: ansible_facts.system_vendor == 'HPE'
+
+- name: Configure cluster fencing (VMware)
+  include_tasks: fencing_vmware.yml
+  when: ansible_facts.system_vendor == 'VMware, Inc.'
+
+- name: Configure cluster fencing timeout
+  command: pcs property set stonith-timeout=900
+  run_once: true
+  when: false
+
+- name: Configure expected votes
+  command: pcs quorum expected-votes 2
+  run_once: true
+  when: false
+
+- name: Allow concurrent fence actions
+  command: pcs property set concurrent-fencing=true
+  run_once: true
+  when: false
+
+- name: Enable cluster fencing
+  command: pcs property set stonith-enabled=true
+  run_once: true
+
+- name: Remove cluster from maintenance mode
+  command: pcs property set maintenance-mode=false
+  run_once: true
+
+# Testing - see RHKB article 3004101
+# crm_resource --move --resource SAPHana_<sid>_<instance>-clone
+# pcs resource clear SAPHana_<sid>_<instance>-clone

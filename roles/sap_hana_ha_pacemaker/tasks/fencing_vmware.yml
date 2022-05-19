@@ -1,0 +1,24 @@
+---
+- name: Install fence agent package
+  yum:
+    name: fence-agents-vmware-rest
+    state: present
+
+- name: Configure cluster fence agent
+  vars:
+    primary_vmware_name: "{{ hostvars[groups.all[0]].ansible_facts.hostname }}"
+    primary_cluster_name: "{{ hostvars[groups.all[0]].ansible_facts.fqdn }}"
+    secondary_vmware_name: "{{ hostvars[groups.all[1]].ansible_facts.hostname }}"
+    secondary_cluster_name: "{{ hostvars[groups.all[1]].ansible_facts.fqdn }}"
+    pcmk_host_map: "{{ primary_cluster_name }}:{{ primary_vmware_name }};{{ secondary_cluster_name }}:{{ secondary_vmware_name }}"
+  command: >
+    pcs stonith create vmfence fence_vmware_rest
+    pcmk_host_map='{{ pcmk_host_map }}'
+    ipaddr={{ vcenter_credentials.vcenter_server }}
+    ssl=1 ssl_insecure=1
+    login={{ vcenter_credentials.vcenter_username }}
+    passwd={{ vcenter_credentials.vcenter_password }}
+  run_once: true
+  register: fence_config
+  failed_when: fence_config.rc != 0 and 'already exists' not in fence_config.stderr
+  changed_when: "'already exists' not in fence_config.stderr"

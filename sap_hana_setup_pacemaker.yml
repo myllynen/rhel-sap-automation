@@ -1,0 +1,22 @@
+---
+- name: Setup Pacemaker for SAP HANA
+  hosts: all
+  become: true
+  vars:
+    sap_hana_ha_pacemaker_hana_install_sid: 'ABC'
+    sap_hana_ha_pacemaker_hana_install_number: '123'
+
+    sap_hana_ha_pacemaker_hana_directory: /hana/shared
+    sap_hana_ha_pacemaker_hana_directory_owner: abcadm
+    sap_hana_ha_pacemaker_hana_directory_group: sapsys
+
+    sap_hana_ha_pacemaker_hana_virtual_ip: 192.168.122.30
+    sap_hana_ha_pacemaker_cluster_name: hana_cluster
+
+    sap_hana_ha_pacemaker_hana_hsr_primary_site_name: dc1
+    sap_hana_ha_pacemaker_hana_hsr_secondary_site_name: dc1
+
+    # This should come from vault
+    sap_hana_ha_pacemaker_hacluster_password: 'Foobar_12'
+  roles:
+    - sap_hana_ha_pacemaker
