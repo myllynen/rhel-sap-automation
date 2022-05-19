@@ -30,7 +30,7 @@
     owner: "{{ sap_hana_ha_pacemaker_hana_directory_owner }}"
     group: "{{ sap_hana_ha_pacemaker_hana_directory_group }}"
 
-- name: Copy SAP HANA SR hook
+- name: Copy SAP HANA SR hook script
   copy:
     src: /usr/share/SAPHanaSR/srHook/SAPHanaSR.py
     dest: "{{ hana_install_path }}/hooks"
