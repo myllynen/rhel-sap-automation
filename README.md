@@ -15,6 +15,8 @@ Ansible playbooks to automate RHEL & SAP setup.
   * Setup SAP HANA
 * [sap_hana_setup_hsr.yml](sap_hana_setup_hsr.yml)
   * Setup SAP HANA HSR
+* [sap_hana_setup_pacemaker.yml](sap_hana_setup_pacemaker.yml)
+  * Setup Pacemaker for SAP HANA
 * [sap_host_agent_setup.yml](sap_host_agent_setup.yml)
   * Setup SAP Host Agent (optional)
 
