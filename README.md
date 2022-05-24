@@ -26,7 +26,8 @@ To prepare and verify RHEL, setup SAP HANA, setup SAP HANA HSR, and
 setup Pacemaker for SAP HANA, run the playbook as follows. This example
 expects that basics like SSH keys and sudo have been configured and SAP
 HANA and Host agent installation files will be found from the expected
-locations.
+locations. Since some of the playbook may reboot nodes the playbook are
+executed from a separate Control Node.
 
 ```
 ansible-playbook -i saphana1.example.com,saphana2.example.com \
