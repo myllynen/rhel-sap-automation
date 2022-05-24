@@ -20,6 +20,29 @@ Ansible playbooks to automate RHEL & SAP setup.
 * [sap_host_agent_setup.yml](sap_host_agent_setup.yml)
   * Setup SAP Host Agent (optional)
 
+## Example
+
+To prepare and verify RHEL, setup SAP HANA, setup SAP HANA HSR, and
+setup Pacemaker for SAP HANA, run the playbook as follows. This example
+expects that basics like SSH keys and sudo have been configured and SAP
+HANA and Host agent installation files will be found from the expected
+locations.
+
+```
+ansible-playbook -i saphana1.example.com,saphana2.example.com \
+  sap_hana_rhel_prepare.yml
+ansible-playbook -i saphana1.example.com,saphana2.example.com \
+  sap_hana_rhel_verify.yml
+ansible-playbook -i saphana1.example.com,saphana2.example.com \
+  sap_hana_setup.yml
+ansible-playbook -i saphana1.example.com,saphana2.example.com \
+  sap_hana_setup_hsr.yml
+ansible-playbook -i saphana1.example.com,saphana2.example.com \
+  sap_hana_setup_pacemaker.yml
+ansible-playbook -i saphana1.example.com,saphana2.example.com \
+  sap_hana_rhel_verify.yml
+```
+
 ## See Also
 
 See also
