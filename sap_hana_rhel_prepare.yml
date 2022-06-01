@@ -10,9 +10,67 @@
     #multipath_setup_config_file: ...
     service_state_disable:
       - mlocate-updatedb.timer
-    #storage_volumes: ...
     system_locale: en_US.UTF-8
     system_locale_reboot: true
+
+    #
+    # storage
+    #
+    disk_info:
+      data_disk_size: '1.00 TB'
+      data_disk_slot: 0
+      log_disk_size: '200.00 GB'
+      log_disk_slot: 0
+      shared_disk_size: '512.00 GB'
+      shared_disk_slot: 0
+      sap_disk_size: '200.00 GB'
+      sap_disk_slot: 1
+    disk_mappings:
+      data_disk: "{{ (ansible_facts.devices | dict2items | sort(attribute='key')
+                     | selectattr('value.wwn', 'defined')
+                     | selectattr('value.size', '==', disk_info.data_disk_size)
+                     | map(attribute='value.links.ids') | list )[disk_info.data_disk_slot]
+                     | first | replace('dm-name-', '') }}"
+      log_disk: "{{ (ansible_facts.devices | dict2items | sort(attribute='key')
+                     | selectattr('value.wwn', 'defined')
+                     | selectattr('value.size', '==', disk_info.log_disk_size)
+                     | map(attribute='value.links.ids') | list )[disk_info.log_disk_slot]
+                     | first | replace('dm-name-', '') }}"
+      shared_disk: "{{ (ansible_facts.devices | dict2items | sort(attribute='key')
+                     | selectattr('value.wwn', 'defined')
+                     | selectattr('value.size', '==', disk_info.shared_disk_size)
+                     | map(attribute='value.links.ids') | list )[disk_info.shared_disk_slot]
+                     | first | replace('dm-name-', '') }}"
+      sap_disk: "{{ (ansible_facts.devices | dict2items | sort(attribute='key')
+                     | selectattr('value.wwn', 'defined')
+                     | selectattr('value.size', '==', disk_info.sap_disk_size)
+                     | map(attribute='value.links.ids') | list)[disk_info.sap_disk_slot]
+                     | first | replace('dm-name-', '') }}"
+    storage_volumes:
+      - name: data
+        type: disk
+        disks:
+          - "{{ disk_mappings.data_disk }}"
+        mount_point: /hana/data/ABC
+        fs_label: data
+      - name: log
+        type: disk
+        disks:
+          - "{{ disk_mappings.log_disk }}"
+        mount_point: /hana/log/ABC
+        fs_label: log
+      - name: shared
+        type: disk
+        disks:
+          - "{{ disk_mappings.shared_disk }}"
+        mount_point: /hana/shared/ABC
+        fs_label: shared
+      - name: sap
+        type: disk
+        disks:
+          - "{{ disk_mappings.sap_disk }}"
+        mount_point: /usr/sap
+        fs_label: sap
 
     #
     # SAP general preconfiguration
