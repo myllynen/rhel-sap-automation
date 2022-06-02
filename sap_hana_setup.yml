@@ -17,6 +17,7 @@
     sap_hana_install_userid: 1234
     sap_hana_install_groupid: 1234
 
+    # This should come from vault
     sap_hana_install_common_master_password: 'Foobar_12'
 
     sap_hana_install_apply_license: false
