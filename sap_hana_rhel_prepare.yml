@@ -101,9 +101,9 @@
   roles:
     - timesync
     - system_locale
-    - multipath_setup
-    #- rhel-system-roles.storage
-    #- accounts_local
+    - { role: multipath_setup, when: ansible_facts.virtualization_role != 'guest' }
+    - { role: rhel-system-roles.storage, when: ansible_facts.virtualization_role != 'guest' }
+    - accounts_local
     - base_packages
     - firewall
     - system_init
