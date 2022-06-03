@@ -6,6 +6,8 @@
     sap_general_preconfigure_assert: true
     sap_general_preconfigure_assert_ignore_errors: false
 
+    sap_general_preconfigure_max_hostname_length: 16
+
     sap_hana_preconfigure_assert: true
     sap_hana_preconfigure_assert_ignore_errors: false
     sap_hana_preconfigure_assert_all_config: true
