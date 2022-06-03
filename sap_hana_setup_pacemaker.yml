@@ -3,6 +3,10 @@
   hosts: all
   become: true
   vars:
+    hp_ilo_addresses:
+      - { hostname: saphana1.example.com, hp_ilo_ip: 10.0.0.10 }
+      - { hostname: saphana2.example.com, hp_ilo_ip: 10.0.0.20 }
+
     sap_hana_ha_pacemaker_hana_install_sid: 'ABC'
     sap_hana_ha_pacemaker_hana_install_number: '123'
 
