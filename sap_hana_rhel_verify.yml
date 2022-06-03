@@ -10,9 +10,10 @@
 
     sap_hana_preconfigure_assert: true
     sap_hana_preconfigure_assert_ignore_errors: false
-    sap_hana_preconfigure_assert_all_config: true
+    sap_hana_preconfigure_assert_all_config: false
 
     sap_hana_preconfigure_use_tuned: true
+    sap_hana_preconfigure_modify_grub_cmdline_linux: true
   roles:
     - sap_general_preconfigure
     - sap_hana_preconfigure
