@@ -84,7 +84,8 @@
     sap_general_preconfigure_use_ha_repos: false
     sap_general_preconfigure_disable_all_other_repos: false
 
-    #sap_hana_preconfigure_db_group_name: sapsys
+    sap_general_preconfigure_db_group_name: sapsys
+    sap_general_preconfigure_max_hostname_length: 16
 
     #
     # SAP HANA preconfiguration
