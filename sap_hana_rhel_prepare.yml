@@ -51,19 +51,19 @@
         type: disk
         disks:
           - "{{ disk_mappings.data_disk }}"
-        mount_point: /hana/data/ABC
+        mount_point: /hana/data
         fs_label: data
       - name: log
         type: disk
         disks:
           - "{{ disk_mappings.log_disk }}"
-        mount_point: /hana/log/ABC
+        mount_point: /hana/log
         fs_label: log
       - name: shared
         type: disk
         disks:
           - "{{ disk_mappings.shared_disk }}"
-        mount_point: /hana/shared/ABC
+        mount_point: /hana/shared
         fs_label: shared
       - name: sap
         type: disk
