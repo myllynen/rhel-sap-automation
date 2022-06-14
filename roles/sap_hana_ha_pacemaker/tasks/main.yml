@@ -135,7 +135,7 @@
   command: pcs resource defaults update migration-threshold=5000
   run_once: true
 
-- name: Create cluster topology resource
+- name: Create cluster SAP HANA topology resource
   command: >
     pcs resource create SAPHanaTopology_{{ sap_hana_ha_pacemaker_hana_install_sid }}_{{ sap_hana_ha_pacemaker_hana_install_number }}
     SAPHanaTopology SID={{ sap_hana_ha_pacemaker_hana_install_sid }} InstanceNumber={{ sap_hana_ha_pacemaker_hana_install_number }}
@@ -148,7 +148,7 @@
   failed_when: topo_create.rc != 0 and 'already exists' not in topo_create.stderr
   changed_when: "'already exists' not in topo_create.stderr"
 
-- name: Create cluster resource agent
+- name: Create cluster SAP HANA resource agent
   command: >
     pcs resource create SAPHana_{{ sap_hana_ha_pacemaker_hana_install_sid }}_{{ sap_hana_ha_pacemaker_hana_install_number }}
     SAPHana SID={{ sap_hana_ha_pacemaker_hana_install_sid }} InstanceNumber={{ sap_hana_ha_pacemaker_hana_install_number }}
@@ -159,13 +159,14 @@
     op monitor interval=59 role="Master" timeout=700
     op promote timeout=3600
     op demote timeout=3600
-    promotable notify=true clone-max=2 clone-node-max=1 interleave=true
+    promotable notify=true
+    clone-max=2 clone-node-max=1 interleave=true
   run_once: true
   register: agent_create
   failed_when: agent_create.rc != 0 and 'already exists' not in agent_create.stderr
   changed_when: "'already exists' not in agent_create.stderr"
 
-- name: Create cluster Virtual IP address resource
+- name: Create cluster SAP HANA Virtual IP address resource
   command: >
     pcs resource create vip_{{ sap_hana_ha_pacemaker_hana_install_sid }}_{{ sap_hana_ha_pacemaker_hana_install_number }}
     IPaddr2 ip="{{ sap_hana_ha_pacemaker_hana_virtual_ip }}"
@@ -174,23 +175,32 @@
   failed_when: vip_create.rc != 0 and 'already exists' not in vip_create.stderr
   changed_when: "'already exists' not in vip_create.stderr"
 
-- name: Create cluster constraint
+- name: Configure cluster SAP HANA topology constraint order
   command: >
     pcs constraint order SAPHanaTopology_{{ sap_hana_ha_pacemaker_hana_install_sid }}_{{ sap_hana_ha_pacemaker_hana_install_number }}-clone
     then SAPHana_{{ sap_hana_ha_pacemaker_hana_install_sid }}_{{ sap_hana_ha_pacemaker_hana_install_number }}-clone symmetrical=false
   run_once: true
-  register: constraint_create
-  failed_when: constraint_create.rc != 0 and 'already exists' not in constraint_create.stderr
-  changed_when: "'already exists' not in constraint_create.stderr"
+  register: constraint_order
+  failed_when: constraint_order.rc != 0 and 'already exists' not in constraint_order.stderr
+  changed_when: "'already exists' not in constraint_order.stderr"
 
-- name: Colocate cluster constraint
-  command:
+- name: Colocate cluster SAPA HANA Virtual IP address
+  command: >
     pcs constraint colocation add vip_{{ sap_hana_ha_pacemaker_hana_install_sid }}_{{ sap_hana_ha_pacemaker_hana_install_number }}
     with master SAPHana_{{ sap_hana_ha_pacemaker_hana_install_sid }}_{{ sap_hana_ha_pacemaker_hana_install_number }}-clone 2000
   run_once: true
   register: constraint_colocate
   failed_when: constraint_colocate.rc != 0 and 'already exists' not in constraint_colocate.stderr
   changed_when: "'already exists' not in constraint_colocate.stderr"
+
+- name: Promote cluster SAPA HANA Virtual IP address
+  command: >
+    pcs constraint order promote SAPHana_{{ sap_hana_ha_pacemaker_hana_install_sid }}_{{ sap_hana_ha_pacemaker_hana_install_number }}-clone
+    then start vip_{{ sap_hana_ha_pacemaker_hana_install_sid }}_{{ sap_hana_ha_pacemaker_hana_install_number }}
+  run_once: true
+  register: constraint_promote
+  failed_when: constraint_promote.rc != 0 and 'already exists' not in constraint_promote.stderr
+  changed_when: "'already exists' not in constraint_promote.stderr"
 
 - name: Configure expected votes
   command: pcs quorum expected-votes 2
