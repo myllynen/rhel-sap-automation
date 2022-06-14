@@ -6,6 +6,11 @@
       - pcs
       - resource-agents-sap-hana
 
+- name: Set password for hacluster user
+  user:
+    name: hacluster
+    password: "{{ sap_hana_ha_pacemaker_hacluster_password | password_hash('sha512', 1234567890 | random(seed=inventory_hostname)) }}"
+
 - name: Check SAP HANA status
   shell:
     cmd: su - "{{ sap_hana_ha_pacemaker_hana_install_sid | lower }}adm" -c "HDB info"
@@ -74,11 +79,6 @@
   failed_when: "'hdbxsengine' not in hdb_info.stdout"
   changed_when: false
 
-- name: Set password for hacluster user
-  user:
-    name: hacluster
-    password: "{{ sap_hana_ha_pacemaker_hacluster_password | password_hash('sha512', 1234567890 | random(seed=inventory_hostname)) }}"
-
 - name: Enable pcsd service
   service:
     name: pcsd
@@ -107,7 +107,7 @@
   command: >
     pcs cluster setup {{ sap_hana_ha_pacemaker_cluster_name }}
     {{ hostvars[groups.all[0]].ansible_facts.fqdn }} {{ hostvars[groups.all[1]].ansible_facts.fqdn }}
-#    totem token=30000
+    totem token=30000
   run_once: true
   register: cluster_create
   failed_when:
@@ -192,6 +192,10 @@
   failed_when: constraint_colocate.rc != 0 and 'already exists' not in constraint_colocate.stderr
   changed_when: "'already exists' not in constraint_colocate.stderr"
 
+- name: Configure expected votes
+  command: pcs quorum expected-votes 2
+  run_once: true
+
 - name: Configure cluster fencing (HPE)
   include_tasks: fencing_hpe.yml
   when: ansible_facts.system_vendor == 'HPE'
@@ -202,10 +206,6 @@
 
 - name: Configure cluster fencing timeout
   command: pcs property set stonith-timeout=900
-  run_once: true
-
-- name: Configure expected votes
-  command: pcs quorum expected-votes 2
   run_once: true
 
 - name: Enable cluster fencing
