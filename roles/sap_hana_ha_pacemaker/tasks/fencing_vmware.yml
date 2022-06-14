@@ -12,12 +12,13 @@
     secondary_cluster_name: "{{ hostvars[groups.all[1]].ansible_facts.fqdn }}"
     pcmk_host_map: "{{ primary_cluster_name }}:{{ primary_vmware_name }};{{ secondary_cluster_name }}:{{ secondary_vmware_name }}"
   command: >
-    pcs stonith create vmfence fence_vmware_rest
-    pcmk_host_map='{{ pcmk_host_map }}'
+    pcs stonith create
+    vmware_rest_fence fence_vmware_rest
     ipaddr={{ vcenter_credentials.vcenter_server }}
-    ssl=1 ssl_insecure=1
     login={{ vcenter_credentials.vcenter_username }}
     passwd={{ vcenter_credentials.vcenter_password }}
+    ssl=1 ssl_insecure=1
+    pcmk_host_map='{{ pcmk_host_map }}'
   run_once: true
   register: fence_config
   failed_when: fence_config.rc != 0 and 'already exists' not in fence_config.stderr

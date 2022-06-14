@@ -6,10 +6,15 @@
 
 - name: Configure cluster fence agent
   command: >
-    pcs stonith create ipmi-fence-{{ item.hostname }} fence_ipmilan
-    pcmk_host_list='{{ item.hostname }}'
+    pcs stonith create
+    ipmi_fence_{{ item.hostname }} fence_ipmilan
     ipaddr={{ item.hp_ilo_ip }}
-    ssl=1 ssl_insecure=1
     login='{{ hp_ilo_credentials.hp_ilo_username }}'
     passwd='{{ hp_ilo_credentials.hp_ilo_password }}'
+    ssl=1 ssl_insecure=1
+    pcmk_host_list='{{ item.hostname }}'
+  run_once: true
+  register: fence_config
+  failed_when: fence_config.rc != 0 and 'already exists' not in fence_config.stderr
+  changed_when: "'already exists' not in fence_config.stderr"
   loop: "{{ hp_ilo_addresses }}"
