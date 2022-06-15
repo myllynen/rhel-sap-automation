@@ -52,7 +52,8 @@ ansible-playbook -i saphana1.example.com,saphana2.example.com \
 The Ansible roles for SAP supported by Red Hat are included in the
 _rhel-system-roles-sap_ RPM package.
 
-See the following RHKB articles for support status of the included roles:
+See the following RHKB articles for the support status of the included
+roles:
 
 * [https://access.redhat.com/articles/4488731](https://access.redhat.com/articles/4488731)
 * [https://access.redhat.com/articles/6857351](https://access.redhat.com/articles/6857351)
@@ -63,7 +64,8 @@ joint IBM/Red Hat/SAP/SUSE upstream repository:
 * [https://github.com/sap-linuxlab/community.sap_install](https://github.com/sap-linuxlab/community.sap_install)
 
 The SAP HANA Pacemaker role included in this repository is based on the
-upstream _dev_ branch current (as of 2022-06) under active developement:
+upstream _dev_ branch currently (as of 2022-06) under active
+developement:
 
 * [https://github.com/mmoster/community.sap_install/tree/dev](https://github.com/mmoster/community.sap_install/tree/dev)
 
@@ -72,13 +74,13 @@ The older, now deprecated SAP RHEL roles can be found from:
 * [https://github.com/redhat-sap](https://github.com/redhat-sap)
 
 The Red Hat Knowledge Base article explaining the details of RHEL & SAP
-HANA setup is at:
+HANA setup:
 
 * [https://access.redhat.com/articles/3004101](https://access.redhat.com/articles/3004101)
 
-The playbooks have been tested with the RHEL 8.4 E4S roles. Please be
-prepared to update the playbooks and especially the variables used when
-upgrading to newer versions.
+The playbooks have been tested with the RHEL 8.4 E4S roles and upstream
+versions as of 2022-06. Please be prepared to update the playbooks and
+especially the variables used when upgrading to newer versions.
 
 ## See Also
 
