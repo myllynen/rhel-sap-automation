@@ -201,6 +201,7 @@
   register: constraint_promote
   failed_when: constraint_promote.rc != 0 and 'already exists' not in constraint_promote.stderr
   changed_when: "'already exists' not in constraint_promote.stderr"
+  when: false
 
 - name: Configure expected votes
   command: pcs quorum expected-votes 2
