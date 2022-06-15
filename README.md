@@ -47,7 +47,7 @@ ansible-playbook -i saphana1.example.com,saphana2.example.com \
   sap_hana_rhel_verify.yml
 ```
 
-## Ansible Roles for SAP
+## Ansible Role Description
 
 The Ansible roles for SAP supported by Red Hat are included in the
 _rhel-system-roles-sap_ RPM package.
