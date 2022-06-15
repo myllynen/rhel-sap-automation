@@ -23,13 +23,13 @@ Ansible playbooks to automate RHEL & SAP setup.
 ## Quick Example
 
 To prepare and verify RHEL, setup SAP HANA, setup SAP HANA HSR, and
-setup Pacemaker for SAP HANA, run the playbook as follows. This example
+setup Pacemaker for SAP HANA, run the playbooks as follows. This example
 expects that basics like SSH keys and sudo to be configured and SAP HANA
 and SAP Host Agent installation files to be found from the expected
 locations.
 
 Each playbook contains installation specific settings that should be
-adjusted as needed. Since some of the playbook may reboot nodes the
+adjusted as needed. Since some of the playbooks may reboot nodes the
 playbook are executed from a separate Control Node.
 
 ```
