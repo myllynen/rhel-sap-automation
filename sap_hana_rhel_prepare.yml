@@ -2,6 +2,7 @@
 - name: Prepare RHEL system for SAP HANA
   hosts: all
   become: true
+  any_errors_fatal: true
   vars:
     #accounts_local_groups_create: ...
     #accounts_local_users_create: ...

@@ -2,6 +2,7 @@
 - name: Setup SAP Host Agent
   hosts: all
   become: true
+  any_errors_fatal: true
   vars:
     sap_hostagent_installation_type: sar
     sap_hostagent_sar_local_path: /tmp

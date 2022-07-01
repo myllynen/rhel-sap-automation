@@ -2,6 +2,7 @@
 - name: Setup SAP HANA
   hosts: all
   become: true
+  any_errors_fatal: true
   vars:
     #
     # SAP HANA installation

@@ -2,6 +2,7 @@
 - name: Verify RHEL system for SAP HANA
   hosts: all
   become: true
+  any_errors_fatal: true
   vars:
     sap_general_preconfigure_assert: true
     sap_general_preconfigure_assert_ignore_errors: false

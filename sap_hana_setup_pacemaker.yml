@@ -2,6 +2,7 @@
 - name: Setup Pacemaker for SAP HANA
   hosts: all
   become: true
+  any_errors_fatal: true
   vars:
     hp_ilo_addresses:
       - { hostname: saphana1.example.com, hp_ilo_ip: 10.0.0.10 }

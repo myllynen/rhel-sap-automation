@@ -2,6 +2,7 @@
 - name: Setup SAP HANA HSR
   hosts: all
   become: true
+  any_errors_fatal: true
   vars:
     primary_site_name: dc1
     secondary_site_name: dc2
