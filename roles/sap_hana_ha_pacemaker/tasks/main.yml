@@ -34,6 +34,7 @@
     state: directory
     owner: "{{ sap_hana_ha_pacemaker_hana_directory_owner }}"
     group: "{{ sap_hana_ha_pacemaker_hana_directory_group }}"
+    mode: '0755'
 
 - name: Copy SAP HANA SR hook script
   copy:
